@@ -92,3 +92,36 @@ class Auth:
         else:
             user.session_id = None
             return None
+
+    def get_reset_password_token(self, email: str) -> str:
+        """_summary_
+
+        Args:
+            email (str): _description_
+
+        Returns:
+            str: _description_
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+        except NoResultFound:
+            raise ValueError
+        else:
+            user.reset_token = _generate_uuid()
+            return user.reset_token
+
+    def update_password(self, reset_token: str, password: str) -> None:
+        """_summary_
+
+        Args:
+            reset_token (str): _description_
+            password (str): _description_
+        """
+        try:
+            user = self._db.find_user_by(reset_token=reset_token)
+        except NoResultFound:
+            raise ValueError
+        else:
+            user.hashed_password = _hash_password(password)
+            user.reset_token = None
+            return None
